@@ -39,7 +39,7 @@ def index():
     return current_user.email
 
 
-@app.route('/client')
+@blueprint.route('/client')
 @login_required
 def client():
     item = Client(
