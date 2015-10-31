@@ -1,0 +1,14 @@
+<link rel="stylesheet" href="http://libs.wushuyi.com/libs/uikit/2.23.0/css/components/notify.gradient.css"/>
+<script src="http://libs.wushuyi.com/libs/uikit/2.23.0/js/components/notify.js"></script>
+<script>
+    {%- with messages = get_flashed_messages(with_categories=true) %}
+        {%- if messages %}
+            {%- for category, message in messages %}
+                {%- if category == 'message' %}
+                    {% set category = 'info' %}
+                {%- endif %}
+                UIkit.notify("{{ message }}", {status: "{{category}}"});
+            {%- endfor %}
+        {%- endif %}
+    {%- endwith %}
+</script>

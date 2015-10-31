@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}注 册{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="http://libs.wushuyi.com/libs/uikit/2.23.0/css/components/form-password.gradient.css"/>
+    <script src="http://libs.wushuyi.com/libs/uikit/2.23.0/js/components/form-password.js"></script>
+
+    <link rel="stylesheet" href="http://libs.wushuyi.com/libs/uikit/2.23.0/css/components/tooltip.gradient.css"/>
+    <script src="http://libs.wushuyi.com/libs/uikit/2.23.0/js/components/tooltip.js"></script>
+
+    <link rel="stylesheet" href="http://libs.wushuyi.com/libs/formvalidation/0.6.1/css/formValidation.css"/>
+    <script src="http://libs.wushuyi.com/libs/formvalidation/0.6.1/js/formValidation.js"></script>
+    <script src="http://libs.wushuyi.com/libs/formvalidation/0.6.1/js/language/zh_CN.js"></script>
+    <script src="http://libs.wushuyi.com/libs/formvalidation/0.6.1/js/framework/uikit.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('auth.static', filename='style.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="uk-vertical-align uk-text-center">
+        <div class="uk-vertical-align-middle" style="width: 310px;">
+            <h2 class="uk-h2">注 册</h2>
+
+            <form id="login-form" class="uk-panel uk-panel-box uk-form" action="{{ url_for_security('register') }}"
+                  method="POST"
+                  name="register_user_form">
+                {{ register_user_form.hidden_tag() | safe }}
+                <div class="uk-form-row">
+                    {{ register_user_form.email(class="uk-width-9-10 uk-float-left uk-form-large", placeholder="电子邮箱") | safe }}
+                </div>
+                <div class="uk-form-row">
+                    {{ register_user_form.password(class="uk-width-9-10 uk-float-left uk-form-large", placeholder="密码") | safe }}
+                </div>
+                {%- if register_user_form.password_confirm %}
+                    <div class="uk-form-row">
+                        {{ register_user_form.password_confirm(class="uk-width-9-10 uk-float-left uk-form-large", placeholder="确认密码") | safe }}
+                    </div>
+                {%- endif %}
+                <div class="uk-form-row">
+                    {{ register_user_form.submit(
+                    class="uk-width-9-10 uk-float-left uk-button uk-button-primary uk-button-large",
+                    value="注 册", id='need-js') | safe }}
+                </div>
+                <div class="uk-form-row uk-text-small">
+                    <a class="uk-float-right uk-link uk-link-muted" href="{{ url_for('security.login') }}">已有账号</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        $('#need-js').removeAttr('id').removeAttr('name');
+        UIkit.ready(function () {
+            var serverData = {};
+            {%- if register_user_form.email.errors  %}
+                {%- set error = register_user_form.email.errors[0] %}
+                serverData.email = '{{ error }}';
+            {%- endif %}
+            {%- if register_user_form.password.errors  %}
+                {%- set error = register_user_form.password.errors[0] %}
+                serverData.password = '{{ error }}';
+            {%- endif %}
+            {%- if register_user_form.password_confirm and register_user_form.password_confirm.errors  %}
+                {%- set error = register_user_form.password_confirm.errors[0] %}
+                serverData.password_confirm = '{{ error }}';
+            {%- endif %}
+            (function ($) {
+                FormValidation.Validator.custom = {
+                    validate: function (validator, $field, options) {
+                        return true;
+                    }
+                };
+            }(jQuery));
+            var $loginForm = $('#login-form');
+            $loginForm.formValidation({
+                locale: 'zh_CN',
+                framework: 'uikit',
+                icon: {
+                    valid: 'uk-icon-check',
+                    invalid: 'uk-icon-times',
+                    validating: 'uk-icon-refresh uk-icon-spin',
+                },
+                err: {
+                    container: 'tooltip'
+                },
+                fields: {
+                    email: {
+                        validators: {
+                            notEmpty: {},
+                            emailAddress: {},
+                            custom: {
+                                message: serverData.email || ''
+                            }
+                        }
+                    },
+                    password: {
+                        validators: {
+                            stringLength: {
+                                min: 6,
+                                max: 30
+                            },
+                            notEmpty: {},
+                            custom: {
+                                message: serverData.password || ''
+                            }
+                        }
+                    }
+                    {%- if register_user_form.password_confirm %}
+                        ,password_confirm: {
+                        validators: {
+                            stringLength: {
+                                min: 6,
+                                max: 30
+                            },
+                            notEmpty: {},
+                            identical: {
+                                field: 'password'
+                            },
+                            custom: {
+                                message: serverData.password_confirm || ''
+                            }
+                        }
+                    }
+                    {%- endif %}
+                }
+            });
+            var formValidation = $loginForm.data('formValidation');
+            $.each(serverData, function (key, value) {
+                if (value) {
+                    formValidation.updateStatus(formValidation._cacheFields[key], 'INVALID', 'custom');
+                }
+            });
+        });
+
+    </script>
+
+{% endblock %}
+
